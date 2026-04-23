@@ -1,0 +1,21 @@
+Please note that server maintenance is going be held on 4/20 from 15:00 to 16:00. Change the payment limit for SG Better error code handling for PNB PNB SG Credentials
+Translation in English:
+Please note that server maintenance is going to be held on 4/20 from 15:00 to 16:00. Change the payment limit for SG. Better error code handling for PNB. PNB SG Credentials.
+
+Translation in Japanese:
+4月20日の15:00から16:00までサーバーメンテナンスを実施いたします。あらかじめご了承ください。SGの支払い上限額を変更してください。PNBのエラーコード処理を改善。PNB SGの認証情報。
+
+Translation in Nepali:
+कृपया ध्यान दिनुहोस् कि सर्भर मर्मत कार्य ४/२० मा १५:०० देखि १६:०० बजेसम्म हुनेछ। SG को लागि भुक्तानी सीमा परिवर्तन गर्नुहोस्। PNB को लागि राम्रो त्रुटि कोड ह्यान्डलिंग। PNB SG प्रमाणहरू।
+
+Translation in Hindi:
+कृपया ध्यान दें कि सर्वर रखरखाव ४/२० को १५:०० से १६:०० बजे तक आयोजित किया जाएगा। SG के लिए भुगतान सीमा बदलें। PNB के लिए बेहतर त्रुटि कोड हैंडलिंग। PNB SG क्रेडेंशियल्स।
+
+Translation in Indonesian:
+Harap dicatat bahwa pemeliharaan server akan dilakukan pada tanggal 20/4 dari pukul 15.00 hingga 16.00. Ubah batas pembayaran untuk SG. Penanganan kode kesalahan yang lebih baik untuk PNB. Kredensial PNB SG.
+
+Translation in Tagalog:
+Pakitandaan na ang maintenance ng server ay gaganapin sa 4/20 mula 15:00 hanggang 16:00. Baguhin ang limitasyon sa pagbabayad para sa SG. Mas mahusay na error code handling para sa PNB. Mga kredensyal ng PNB SG.
+
+Translation in Vietnamese:
+Vui lòng lưu ý rằng việc bảo trì máy chủ sẽ được tiến hành vào ngày 20/4 từ 15:00 đến 16:00. Thay đổi hạn mức thanh toán cho SG. Xử lý mã lỗi tốt hơn cho PNB. Thông tin xác thực PNB SG.
