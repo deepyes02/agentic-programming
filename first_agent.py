@@ -241,7 +241,7 @@ if __name__ == "__main__":
 
     result = agent.invoke(
         {
-            "user_request": "what is the date and time?",
+            "user_request": "Find what operating system I am in. Then gather some intelligent OS and program data from the computer. And tell me what you know about me.",
             "current_dir": os.path.expanduser("~/Desktop"),
             "attempts": 0,
             "task_complete": False,
