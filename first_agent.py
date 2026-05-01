@@ -162,8 +162,8 @@ def verifier_node(state: FileManagerState) -> FileManagerState:
     """
     response = llm.invoke([HumanMessage(content=verification_prompt)]).content
 
-    success = "SUCCESS: yes" in response.lower()
-    match = "MATCH: yes" in response.lower()
+    success = "success: yes" in response.lower()
+    match = "match: yes" in response.lower()
     issue = response.split("ISSUE:")[-1].strip() if "ISSUE:" in response else ""
 
     return {
