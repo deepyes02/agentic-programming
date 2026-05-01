@@ -1,5 +1,6 @@
 import subprocess
 import tempfile
+import sys
 import os
 import re
 from langgraph.graph import add_messages, StateGraph, END
@@ -52,7 +53,7 @@ def execute_python_code(code: str) -> tuple[str, str]:
             f.flush()
             temp_path = f.name
             result = subprocess.run(
-                ["python", temp_path], capture_output=True, text=True, timeout=10
+                [sys.executable, temp_path], capture_output=True, text=True, timeout=60
             )
             print(result.stdout, result.stderr)
             return result.stdout, result.stderr
@@ -94,6 +95,7 @@ def code_generator_node(state: FileManagerState) -> FileManagerState:
     - Gracefully handle errors and edge cases with try / except. The idea is to return something valuable for the user rather than just crashing.
     - Print confirmation messages for each action
     - Print the final result so it can be verified
+    - DO NOT print massive amounts of data (like listing 10,000 files or reading huge files). If the output is large, save it to a file and print a summary or just the file path instead.
     """
 
     response = llm.invoke(
@@ -133,6 +135,13 @@ def code_executor_node(state: FileManagerState) -> FileManagerState:
     stdout, stderr = execute_python_code(generated_code)
     output = stdout if stdout else stderr
     error = stderr if stderr else ""
+
+    # Truncate to prevent token explosion
+    MAX_LENGTH = 15000
+    if len(output) > MAX_LENGTH:
+        output = output[:MAX_LENGTH] + "\n\n...[OUTPUT TRUNCATED TO SAVE CONTEXT]..."
+    if len(error) > MAX_LENGTH:
+        error = error[:MAX_LENGTH] + "\n\n...[ERROR TRUNCATED TO SAVE CONTEXT]..."
 
     return {
         **state,
@@ -241,7 +250,7 @@ if __name__ == "__main__":
 
     result = agent.invoke(
         {
-            "user_request": "Find what operating system I am in. Then gather some intelligent OS and program data from the computer. And tell me what you know about me.",
+            "user_request": "There is a folder on my Desktop called smiles-projects, I want you to take a deep dive into this directory and prepare a summary of things you find. And tell me what they are about.",
             "current_dir": os.path.expanduser("~/Desktop"),
             "attempts": 0,
             "task_complete": False,
