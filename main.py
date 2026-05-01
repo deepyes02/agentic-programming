@@ -1,63 +1,252 @@
 import subprocess
+import tempfile
 import os
 import re
-import tempfile
-from langchain_core.messages import HumanMessage, SystemMessage
+from langgraph.graph import add_messages, StateGraph, END
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+from typing import TypedDict, List, Annotated
+
+# from langchain.tools import tool
+# from langgraph.prebuilt import ToolNode
 from utilities.load_model import load_model
 
 
-def main():
-    llm = load_model()
+class FileManagerState(TypedDict):
+    user_request: str
+    # working state
+    current_dir: str
+    target_path: str
+    operation_result: str
+    attempts: int
+    # code
+    generated_code: str
+    execution_output: str
+    error_output: str
+    # tracking
+    task_complete: bool
+    verification_result: str
+    verification_issue: str
+    messages: Annotated[List, add_messages]
 
-    def ask(user_prompt):
-        code = llm.invoke(
-            [
-                SystemMessage(
-                    content="You are a code writing programmer agent. No explanation. Raw python code. Whatever the user is asking, just start writing a python or shell script. Do not explain anything."
-                ),
-                HumanMessage(content=f"{user_prompt}"),
-            ]
-        ).content
 
-        def clean_code_for_execution(code: str) -> str:
-            pattern = r"```(?:python)?\n(.*?)```"
-            match = re.search(pattern, code, re.DOTALL)
-            if match:
-                return match.group(1).strip()
-            # If no code blocks found, remove any standalone backticks
-            return code.strip("`")
+llm = load_model()
 
-        print("##Writing code...\n" + code + "\n##finished writing code...\n")
-        # Fix: Write to file and keep it open until after execution
+
+### Tool for executing the python code ###
+def execute_python_code(code: str) -> tuple[str, str]:
+    """Execute the python code and return the output and error.
+    Args:
+        code (str): The python code to execute.
+    Returns:
+        tuple[str, str]: The output and error of the python code.
+    """
+    pattern = r"```(?:python)?\n(.*?)```"
+    match = re.search(pattern, code, re.DOTALL)
+    if match:
+        code = match.group(1).strip()
+    else:
+        code = code.strip("`")
+    try:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
-            f.write(clean_code_for_execution(code))
-            f.flush()  # Ensure code is written
+            f.write(code)
+            f.flush()
             temp_path = f.name
-        try:
             result = subprocess.run(
                 ["python", temp_path], capture_output=True, text=True, timeout=10
             )
-        except Exception as e:
-            result = str(e)
-            return ("Error: ", result)
-        finally:
-            os.unlink(temp_path)  # Clean up
+            print(result.stdout, result.stderr)
+            return result.stdout, result.stderr
+    finally:
+        os.unlink(temp_path)
 
-        response = llm.invoke(
-            [
-                HumanMessage(
-                    content=f"Here is what the user wants to do: {user_prompt}\nResult: {result}\nAnswer:"
-                )
-            ]
-        ).content
 
-        print(response)
-        return response
+### NODES ###
+def code_generator_node(state: FileManagerState) -> FileManagerState:
+    """Generate python code to satisfy the user request."""
+    # messages = state.get("messages", [])
+    attempts = state.get("attempts", 0)
 
-    ask(
-        "Find the desktop directory, in that directory, create a new directory, 'rogue-ai'. Inside this directory, create a new text file, rogue-output.txt. Write the current date and time, the host name of this computer, public IP address, the operating system name. After that happens, echo out the output of the text file so you can report back. Use necessary functions to ensure that the file was created as expected, and the the content reads what you expected."
+    context = ""
+    if attempts > 0:
+        context = f"""
+        Previous attempt #{attempts}:
+        Generated code: {state.get("generated_code", "")}
+        Execution output: {state.get("execution_output", "")}
+        Verification: {state.get("verification_result", "")}
+
+        Looks like you already made a mistake in the previous attempt. Please fix the issue and try again.
+        """
+
+    system_prompt = f"""
+    You are a python code generator for file system operations.
+    Generate python code to perform the user request.
+    No explanations, no markdown code blocks, just raw python code.
+    Code must be executable and correct.
+    Use standard libraries.
+
+    Current directory: {state.get("current_dir", os.getcwd())}
+    Here is the user request.
+    User request: {state.get("user_request")}
+    {context}
+
+    Rules: 
+    - Handle os and shutil for file operations.
+    - Gracefully handle errors and edge cases with try / except. The idea is to return something valuable for the user rather than just crashing.
+    - Print confirmation messages for each action
+    - Print the final result so it can be verified
+    """
+
+    response = llm.invoke(
+        [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content="Generate code for: " + state["user_request"]),
+        ]
+    ).content
+
+    return {
+        **state,
+        "generated_code": response,
+        "attempts": attempts + 1,
+        "messages": [AIMessage(content=f"Generated Code attempt: {attempts + 1}")],
+    }
+
+
+# invoked_response = code_generator_node(
+#     {
+#         "user_request": "list out all files and folders in the desktop directory",
+#         "current_dir": "/Users/deepesh/Desktop",
+#         "attempts": 0,
+#     }
+# )
+
+
+def code_executor_node(state: FileManagerState) -> FileManagerState:
+    """Execute the python code generated by the code generator node."""
+    generated_code = state.get("generated_code", "")
+    if not generated_code:
+        return {
+            **state,
+            "execution_output": "No code to execute",
+            "task_complete": False,
+        }
+
+    stdout, stderr = execute_python_code(generated_code)
+    output = stdout if stdout else stderr
+    error = stderr if stderr else ""
+
+    return {
+        **state,
+        "execution_output": output,
+        "error_output": error,
+        "operation_result": output if not error else f"Error: {error}",
+    }
+
+
+def verifier_node(state: FileManagerState) -> FileManagerState:
+    """Verify if the result of the code execution matches the original user request."""
+    verification_prompt = f"""
+    User request: {state.get("user_request")}
+    Code executed: {state.get("generated_code")}
+    Output: {state.get("execution_output")}
+    Error: {state.get("error_output")}
+
+    Answer these questions:
+    1. Was the operation successful? (yes/no)
+    2. Does the output match what the user asked for? (yes/no)
+    3. If not, what's missing or wrong?
+    
+    Format your response as:
+    SUCCESS: yes/no
+    MATCH: yes/no
+    ISSUE: [description if any]
+    """
+    response = llm.invoke([HumanMessage(content=verification_prompt)]).content
+
+    success = "success: yes" in response.lower()
+    match = "match: yes" in response.lower()
+    issue = response.split("ISSUE:")[-1].strip() if "ISSUE:" in response else ""
+
+    return {
+        **state,
+        "verification_result": response,
+        "task_complete": success and match,
+        "verification_issue": issue,
+    }
+
+
+def summarizer_node(state: FileManagerState) -> FileManagerState:
+    """Provide the final answer to the user."""
+    if state.get("task_complete"):
+        summary_prompt = f"""
+        User request: {state.get("user_request")}
+
+        Operation success. 
+        Execution output: {state.get("execution_output", "")}
+
+        Provide a clear and friendly completion message to the user.
+        Include what was done and any relevant details.
+        """
+    else:
+        summary_prompt = f"""
+        User request: {state.get("user_request")}
+
+        Operation failed after {state.get("attempts", 0)} attempts.
+        Last execution output: {state.get("execution_output", "")}
+        Issue identified: {state.get("verification_issue", "Unknown")}
+        
+        Explan what possibly went wrong and what could be done differenly.
+        """
+
+    response = llm.invoke([HumanMessage(content=summary_prompt)])
+
+    return {
+        **state,
+        "messages": [AIMessage(content=response.content)],
+    }
+
+
+def should_continue(state: FileManagerState) -> str:
+    """Determine whether to continue or not."""
+    return (
+        "summarize"
+        if state.get("task_complete") or state.get("attempts") >= 3
+        else "retry"
     )
 
 
+# Build Graph #
+def build_file_manager_agent():
+    workflow = StateGraph(FileManagerState)
+    workflow.add_node("generator", code_generator_node)
+    workflow.add_node("execute", code_executor_node)
+    workflow.add_node("verify", verifier_node)
+    workflow.add_node("summarize", summarizer_node)
+
+    # set entryt point
+    workflow.set_entry_point("generator")
+
+    # define edges
+    workflow.add_edge("generator", "execute")
+    workflow.add_edge("execute", "verify")
+
+    workflow.add_conditional_edges(
+        "verify", should_continue, {"retry": "generator", "summarize": "summarize"}
+    )
+    workflow.add_edge("summarize", END)
+    return workflow.compile()
+
+
 if __name__ == "__main__":
-    main()
+    agent = build_file_manager_agent()
+
+    result = agent.invoke(
+        {
+            "user_request": "Find what operating system I am in. Then gather some intelligent OS and program data from the computer. And tell me what you know about me.",
+            "current_dir": os.path.expanduser("~/Desktop"),
+            "attempts": 0,
+            "task_complete": False,
+            "messages": [],
+        }
+    )
+
+    print(result)
