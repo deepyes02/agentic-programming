@@ -2,7 +2,7 @@ import subprocess
 import tempfile
 import os
 import re
-from langgraph.graph import add_messages
+from langgraph.graph import add_messages, StateGraph, END
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from typing import TypedDict, List, Annotated
 
@@ -58,9 +58,6 @@ def execute_python_code(code: str) -> tuple[str, str]:
             return result.stdout, result.stderr
     finally:
         os.unlink(temp_path)
-
-
-# execute_python_code("""print("Hello world")""")
 
 
 ### NODES ###
@@ -133,7 +130,7 @@ def code_executor_node(state: FileManagerState) -> FileManagerState:
             "task_complete": False,
         }
 
-    stdout, stderr = execute_python_code("""print("Hello world")""")
+    stdout, stderr = execute_python_code(generated_code)
     output = stdout if stdout else stderr
     error = stderr if stderr else ""
 
@@ -215,3 +212,41 @@ def should_continue(state: FileManagerState) -> str:
         if state.get("task_complete") or state.get("attempts") >= 3
         else "retry"
     )
+
+
+# Build Graph #
+def build_file_manager_agent():
+    workflow = StateGraph(FileManagerState)
+    workflow.add_node("generator", code_generator_node)
+    workflow.add_node("execute", code_executor_node)
+    workflow.add_node("verify", verifier_node)
+    workflow.add_node("summarize", summarizer_node)
+
+    # set entryt point
+    workflow.set_entry_point("generator")
+
+    # define edges
+    workflow.add_edge("generator", "execute")
+    workflow.add_edge("execute", "verify")
+
+    workflow.add_conditional_edges(
+        "verify", should_continue, {"retry": "generator", "summarize": "summarize"}
+    )
+    workflow.add_edge("summarize", END)
+    return workflow.compile()
+
+
+if __name__ == "__main__":
+    agent = build_file_manager_agent()
+
+    result = agent.invoke(
+        {
+            "user_request": "what is the date and time?",
+            "current_dir": os.path.expanduser("~/Desktop"),
+            "attempts": 0,
+            "task_complete": False,
+            "messages": [],
+        }
+    )
+
+    print(result)
