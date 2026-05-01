@@ -250,7 +250,7 @@ if __name__ == "__main__":
 
     result = agent.invoke(
         {
-            "user_request": "There is a folder on my Desktop called smiles-projects, I want you to take a deep dive into this directory and prepare a summary of things you find. And tell me what they are about.",
+            "user_request": "There is a csv file in my ~/Downloads folder. music-festival-registrations-2026-05-01.csv. I want you to create a meaningful visual report and save that as a smiles-music-festival-2026-report.html in my ~/Desktop folder. Try to classify the data into several types and display them using modern chart / graph library (Less color more sharp and modern looking graphs and charts please). Be creative. AT the bottom, also list the whole table in a scrollable row format with about 5 rows visible at a time.",
             "current_dir": os.path.expanduser("~/Desktop"),
             "attempts": 0,
             "task_complete": False,
