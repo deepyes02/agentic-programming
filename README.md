@@ -101,4 +101,12 @@ graph TD;
 
 ---
 
+## Warning
+
 _Note: This agent executes code directly on your local machine. Use caution and ensure the LLM you use is trusted when requesting complex or potentially destructive file operations._
+
+_Don't prompt something stupid like "delete all my desktop folders"_. You have been warned.
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
