@@ -1,5 +1,26 @@
 # Rogue AI - File Manager Agent
 
+```bash
+(rogue-ai) deepeshdigitalwallet ~/Desktop/github-projects/rogue-ai (main) 
+$ uv run main.py
+🦧 How may I help you?
+➡ create a new file in my desktop directory. rihanna.txt. Inside the file, write "Under my umbrella" text.          
+Here's a friendly completion message for your terminal:
+
+---
+
+✅ **Done!** Here's what happened:
+
+📁 **File created:** `rihanna.txt`  
+📍 **Location:** `/Users/deepesh/Desktop/rihanna.txt`  
+📝 **Content written:** `"Under my umbrella"`
+
+You can now find the file on your desktop.  
+Open it anytime to see the lyrics — or add more lines if you're feeling inspired! 🎤☂️
+
+Need anything else? Just let me know.
+```
+
 Rogue AI is an intelligent, autonomous agent built using [LangGraph](https://python.langchain.com/docs/langgraph) and [LangChain](https://python.langchain.com/docs/get_started/introduction). This project features a robust **File Manager Agent** that interprets user requests in natural language, writes the necessary Python code to achieve the goal, executes it securely, and dynamically verifies the outcome.
 
 ## 🚀 Key Features

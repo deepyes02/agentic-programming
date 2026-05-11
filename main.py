@@ -55,7 +55,7 @@ def execute_python_code(code: str) -> tuple[str, str]:
             result = subprocess.run(
                 [sys.executable, temp_path], capture_output=True, text=True, timeout=60
             )
-            print(result.stdout, result.stderr)
+            # print(result.stdout, result.stderr)
             return result.stdout, result.stderr
     finally:
         os.unlink(temp_path)
@@ -193,7 +193,7 @@ def summarizer_node(state: FileManagerState) -> FileManagerState:
         Execution output: {state.get("execution_output", "")}
 
         Provide a clear and friendly completion message to the user.
-        Include what was done and any relevant details.
+        Include what was done and any relevant details. Format output for command line / terminal friendly view. 
         """
     else:
         summary_prompt = f"""
@@ -246,11 +246,12 @@ def build_file_manager_agent():
 
 
 if __name__ == "__main__":
+    userInput = str(input("🦧 How may I help you?\n➡ "))
     agent = build_file_manager_agent()
 
     result = agent.invoke(
         {
-            "user_request": "There is a csv file in my ~/Downloads folder. music-festival-registrations-2026-05-01.csv. I want you to create a meaningful visual report and save that as a smiles-music-festival-2026-report.html in my ~/Desktop folder. Try to classify the data into several types and display them using modern chart / graph library (Less color more sharp and modern looking graphs and charts please). Be creative. AT the bottom, also list the whole table in a scrollable row format with about 5 rows visible at a time.",
+            "user_request": userInput,
             "current_dir": os.path.expanduser("~/Desktop"),
             "attempts": 0,
             "task_complete": False,
@@ -258,4 +259,4 @@ if __name__ == "__main__":
         }
     )
 
-    print(result)
+    print(result["messages"][-1].content)
