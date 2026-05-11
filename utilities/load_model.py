@@ -11,10 +11,11 @@ def load_model():
     model_name = os.environ.get("MODEL", "qwen2.5-coder:latest")
     google_api_key = os.environ.get("GOOGLE_AI_STUDIO_KEY")
     deepseek_api_key = os.environ.get("DEEPSEEK_API_KEY")
+    openai_base_url = os.environ.get("OPENAI_BASE_URL")
 
     if deepseek_api_key and model_name.startswith("deepseek"):
         return ChatOpenAI(
-            base_url="https://api.deepseek.com/v1",
+            base_url=openai_base_url,
             model=model_name,
             api_key=SecretStr(deepseek_api_key),
             temperature=0.2,

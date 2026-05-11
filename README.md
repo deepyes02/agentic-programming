@@ -68,12 +68,30 @@ graph TD;
 
 ## 🏃‍♂️ Quick Start
 
-1. Ensure your environment has the necessary LLM utilities set up (this project expects a `load_model` utility configured for your preferred LLM provider).
-2. Run the agent script:
+1. Create and activate a virtual environment:
    ```bash
-   python first_agent.py
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
    ```
-3. By default, the script executes a sample prompt: *"Find what operating system I am in. Then gather some intelligent OS and program data from the computer. And tell me what you know about me."*
+2. Copy the example environment file and add your API credentials:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   _Open the `.env` file and fill in your OpenAI (or compatible) API information._
+   1. DEEPSEEK_API_KEY from api.deepseek.com or other LLM provider API key, and modify INFERENCE_API_URL accordingly in .env file.
+
+3. Optional: Langsmith tracing. Create langsmith project, and copy project name and api key
+   LANGSMITH_API_KEY=""
+   LANGSMITH_PROJECT=""
+4. Run the agent script using `uv` (this will automatically install required dependencies):
+   ```bash
+   uv run main.py
+   ```
+5. You will be prompted in the terminal to enter your request:
+   `🦧 How may I help you?`
+   `➡ `
 
 ## 💡 Example Use Cases
 
@@ -82,4 +100,5 @@ graph TD;
 - "Find the largest file in my Documents folder and tell me its size."
 
 ---
-*Note: This agent executes code directly on your local machine. Use caution and ensure the LLM you use is trusted when requesting complex or potentially destructive file operations.*
+
+_Note: This agent executes code directly on your local machine. Use caution and ensure the LLM you use is trusted when requesting complex or potentially destructive file operations._
