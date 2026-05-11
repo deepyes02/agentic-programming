@@ -186,27 +186,31 @@ def verifier_node(state: FileManagerState) -> FileManagerState:
 def summarizer_node(state: FileManagerState) -> FileManagerState:
     """Provide the final answer to the user."""
     if state.get("task_complete"):
+        system_prompt = """
+        Provide a clear and friendly completion message to the user.
+        Include what was done and any relevant details. Format output for command line / terminal friendly view. 
+        """
         summary_prompt = f"""
         User request: {state.get("user_request")}
 
         Operation success. 
         Execution output: {state.get("execution_output", "")}
-
-        Provide a clear and friendly completion message to the user.
-        Include what was done and any relevant details. Format output for command line / terminal friendly view. 
         """
     else:
+        system_prompt = (
+            """Explan what possibly went wrong and what could be done differenly."""
+        )
         summary_prompt = f"""
         User request: {state.get("user_request")}
 
         Operation failed after {state.get("attempts", 0)} attempts.
         Last execution output: {state.get("execution_output", "")}
         Issue identified: {state.get("verification_issue", "Unknown")}
-        
-        Explan what possibly went wrong and what could be done differenly.
         """
 
-    response = llm.invoke([HumanMessage(content=summary_prompt)])
+    response = llm.invoke(
+        [SystemMessage(content=system_prompt), HumanMessage(content=summary_prompt)]
+    )
 
     return {
         **state,

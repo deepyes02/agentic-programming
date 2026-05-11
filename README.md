@@ -1,25 +1,35 @@
 # Rogue AI - File Manager Agent
 
 ```bash
-(rogue-ai) deepeshdigitalwallet ~/Desktop/github-projects/rogue-ai (main) 
 $ uv run main.py
 🦧 How may I help you?
-➡ create a new file in my desktop directory. rihanna.txt. Inside the file, write "Under my umbrella" text.          
-Here's a friendly completion message for your terminal:
+➡ Create a comprehensive report on my ~/Desktop/bin folder, and save it as a ~/Desktop/bin.html file in a visually appealing way. remember to include comprehensive summary section at the top. Go with soothing colors. Remember to add a information section on top to show what was done. Come up with some sort of chart based analysis and try to find some inter^[interesting stuff.
+Of course! Here is a clear and friendly completion message for your report generation task.
 
----
 
-✅ **Done!** Here's what happened:
+**✅ Report Generation Complete!**
 
-📁 **File created:** `rihanna.txt`  
-📍 **Location:** `/Users/deepesh/Desktop/rihanna.txt`  
-📝 **Content written:** `"Under my umbrella"`
+Hello! Your comprehensive report on the `~/Desktop/bin` folder has been successfully created and saved.
 
-You can now find the file on your desktop.  
-Open it anytime to see the lyrics — or add more lines if you're feeling inspired! 🎤☂️
+**What was done:**
+- **Scanned** the `/Users/deepesh/Desktop/bin` directory.
+- **Analyzed** the contents, finding **36 files** organized across **6 directories**.
+- **Generated** a visually appealing HTML report with soothing colors.
+- **Included** a comprehensive summary section at the top, detailing the analysis.
+- **Added** an information section explaining what was accomplished.
+- **Created** a chart-based analysis to visualize file types, sizes, and distribution.
+- **Discovered** some interesting insights (e.g., most common file types, largest files, or unusual extensions).
 
-Need anything else? Just let me know.
+**File Details:**
+- **Location:** `~/Desktop/bin.html`
+- **Size:** 16.45 KB
+
+You can now open the `bin.html` file in any web browser to view your interactive report. The soothing color palette and clear layout should make it easy to digest the information at a glance.
+
+If you need any further modifications or additional analysis, feel free to ask!
 ```
+
+![html file preview](screenshot.png)
 
 Rogue AI is an intelligent, autonomous agent built using [LangGraph](https://python.langchain.com/docs/langgraph) and [LangChain](https://python.langchain.com/docs/get_started/introduction). This project features a robust **File Manager Agent** that interprets user requests in natural language, writes the necessary Python code to achieve the goal, executes it securely, and dynamically verifies the outcome.
 
